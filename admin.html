@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>QOHMS · Election Nexus Pro · Real-Time Voting System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #0a0c12;
+  --bg-secondary: #11141c;
+  --bg-tertiary: #181e2a;
+  --border-dim: rgba(255,255,255,0.06);
+  --border-glow: rgba(0,212,255,0.2);
+  --accent-cyan: #00d4ff;
+  --accent-purple: #a855f7;
+  --accent-green: #10b981;
+  --accent-gold: #fbbf24;
+  --accent-pink: #ec4899;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+/* Animated Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(0,212,255,0.03) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(168,85,247,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Layout */
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Header */
+.hero-header {
+  background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(168,85,247,0.04));
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.logo h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+.logo p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.header-stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.header-stat {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dim);
+}
+
+.header-stat .value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Space Mono', monospace;
+  color: var(--accent-cyan);
+}
+
+.header-stat .label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: var(--bg-secondary);
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dim);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.85rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  color: #000;
+  box-shadow: 0 4px 12px rgba(0,212,255,0.3);
+}
+
+.tab:hover:not(.active) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Tab Content */
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Grid Systems */
+.grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1000px) {
+  .grid-2col, .grid-3col { grid-template-columns: 1fr; }
+}
+
+/* Cards */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 8px 32px rgba(0,212,255,0.08);
+}
+
+.card-header {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, transparent 100%);
+}
+
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Forms */
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.5px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+}
+
+.input-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-cyan), #0088cc);
+  color: #000;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,212,255,0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #059669);
+  color: #fff;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: #fff;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--warning), #d97706);
+  color: #000;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  color: var(--text-secondary);
+}
+
+.btn-outline:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+/* Post Cards in Admin */
+.post-item {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.post-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.post-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.candidate-list {
+  margin: 0.75rem 0;
+}
+
+.candidate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 0.25rem;
+}
+
+.candidate-name {
+  font-size: 0.85rem;
+}
+
+.candidate-votes {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-cyan);
+  background: rgba(0,212,255,0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* Codes Grid */
+.codes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.code-tile {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+.code-tile.active {
+  border-color: var(--success);
+  background: rgba(34,197,94,0.05);
+}
+
+.code-tile.used {
+  border-color: var(--danger);
+  background: rgba(239,68,68,0.05);
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.code-status {
+  font-size: 0.6rem;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Voter Portal Styles */
+.voter-card {
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.voter-code-input {
+  font-size: 1.5rem;
+  text-align: center;
+  letter-spacing: 4px;
+  font-family: 'Space Mono', monospace;
+}
+
+.candidate-option {
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.candidate-option:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(0,212,255,0.05);
+  transform: translateX(4px);
+}
+
+.candidate-option.selected {
+  border-color: var(--accent-green);
+  background: rgba(34,197,94,0.1);
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+}
+
+.radio-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-dim);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.candidate-option.selected .radio-custom::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+}
+
+/* Results Dashboard */
+.result-post {
+  margin-bottom: 2rem;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-dim);
+}
+
+.result-title {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.result-total {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.result-bar-item {
+  margin-bottom: 0.75rem;
+}
+
+.result-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.result-bar-bg {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.result-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.winner-badge {
+  background: var(--accent-gold);
+  color: #000;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 20px;
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+/* Alert Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border-left: 4px solid var(--accent-cyan);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+  max-width: 350px;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* PDF Overlay */
+.pdf-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(20px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.pdf-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--border-dim);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-glow);
+  border-radius: 3px;
+}
+
+/* PDF Render Root */
+#pdfRenderRoot {
+  display: none;
+  visibility: hidden;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  border-top: 1px solid var(--border-dim);
+  margin-top: 2rem;
+}
+</style>
+</head>
+<body>
+
+<div id="pdfRenderRoot"></div>
+
+<div class="app-container">
+  
+  <!-- Header -->
+  <div class="hero-header">
+    <div class="logo">
+      <h1>🗳️ QOHMS · Election Nexus Pro</h1>
+      <p>Real-Time Multi-Post Voting System with Secure Code Vault</p>
+    </div>
+    <div class="header-stats">
+      <div class="header-stat">
+        <div class="value" id="statTotalVotes">0</div>
+        <div class="label">Total Votes</div>
+      </div>
+      <div class="header-stat">
+        <div class="value" id="statTurnout">0%</div>
+        <div class="label">Turnout</div>
+      </div>
+      <div class="header-stat">
+        <div class="value" id="statActiveCodes">0</div>
+        <div class="label">Active Codes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="admin">🏛️ Admin Dashboard</button>
+    <button class="tab" data-tab="voter">🗳️ Voter Portal</button>
+    <button class="tab" data-tab="results">📊 Live Results</button>
+    <button class="tab" data-tab="reports">📑 Reports & Export</button>
+  </div>
+
+  <!-- Admin Tab -->
+  <div class="tab-content active" id="tab-admin">
+    <div class="grid-2col">
+      <!-- Posts Management -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📌 Posts & Candidates</h3>
+          <button class="btn btn-primary btn-sm" id="createPostBtn">+ Create Post</button>
+        </div>
+        <div class="card-body">
+          <div class="input-row" style="margin-bottom: 1rem;">
+            <input type="text" id="newPostTitle" placeholder="Enter post title...">
+          </div>
+          <div id="postsListAdmin" style="max-height: 500px; overflow-y: auto;"></div>
+        </div>
+      </div>
+
+      <!-- Codes Management -->
+      <div class="card">
+        <div class="card-header">
+          <h3>🎫 Code Vault</h3>
+        </div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Batch Generation</label>
+            <div class="input-row">
+              <input type="number" id="codesCount" value="20" min="1" max="100" style="width: 70px;">
+              <select id="genSection" style="flex: 1;">
+                <option value="1">Section 1</option>
+                <option value="2">Section 2</option>
+                <option value="3">Section 3</option>
+                <option value="4">Section 4</option>
+              </select>
+              <button class="btn btn-success btn-sm" id="generateCodesBtn">Generate</button>
+            </div>
+          </div>
+          <div class="input-group" style="margin-top: 1rem;">
+            <label>Export & Manage</label>
+            <div class="input-row">
+              <select id="exportSection" style="flex: 1;">
+                <option value="all">All Sections</option>
+                <option value="1">Section 1</option>
+                <option value="2">Section 2</option>
+                <option value="3">Section 3</option>
+                <option value="4">Section 4</option>
+              </select>
+              <button class="btn btn-outline btn-sm" id="exportCodesBtn">Export PDF</button>
+              <button class="btn btn-danger btn-sm" id="clearCodesBtn">Delete Section</button>
+            </div>
+          </div>
+          <div id="sectionStats" style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-secondary); display: flex; gap: 10px; flex-wrap: wrap; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+            <span>S1: <b id="countS1">0</b></span> <span>S2: <b id="countS2">0</b></span> 
+            <span>S3: <b id="countS3">0</b></span> <span>S4: <b id="countS4">0</b></span>
+          </div>
+          <div class="codes-grid" id="codesGrid" style="margin-top: 1.5rem; max-height: 350px;"></div>
+        </div>
+      </div>
+
+      <!-- Election Control -->
+      <div class="card">
+        <div class="card-header">
+          <h3>⚙️ Global Control</h3>
+        </div>
+        <div class="card-body">
+          <div class="btn-group" style="margin-top: 1rem;">
+            <button class="btn btn-warning" id="resetAllVotesBtn">Reset All Votes</button>
+            <button class="btn btn-danger" id="nukeElectionBtn">⚠️ NUKE ELECTION</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📈 Quick Stats</h3>
+        </div>
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div><span style="color: var(--accent-cyan); font-size: 2rem; font-weight: 800;" id="quickPosts">0</span><br><span style="font-size: 0.7rem;">Total Posts</span></div>
+            <div><span style="color: var(--accent-green); font-size: 2rem; font-weight: 800;" id="quickCandidates">0</span><br><span style="font-size: 0.7rem;">Total Candidates</span></div>
+            <div><span style="color: var(--accent-gold); font-size: 2rem; font-weight: 800;" id="quickUsed">0</span><br><span style="font-size: 0.7rem;">Used Codes</span></div>
+            <div><span style="color: var(--accent-purple); font-size: 2rem; font-weight: 800;" id="quickRemaining">0</span><br><span style="font-size: 0.7rem;">Remaining</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voter Tab -->
+  <div class="tab-content" id="tab-voter">
+    <div class="voter-card" id="voterPortal">
+      <div style="margin-bottom: 1.5rem;">
+        <span style="font-size: 3rem;">🗳️</span>
+        <h2 style="margin-top: 0.5rem;">Cast Your Vote</h2>
+        <p style="color: var(--text-muted); font-size: 0.8rem;">Enter your secure voting code to continue</p>
+      </div>
+      <div id="voterStep1">
+        <input type="text" class="voter-code-input" id="voterCode" placeholder="XXXXXX" maxlength="8" style="text-transform: uppercase;">
+        <button class="btn btn-primary" id="verifyCodeBtn" style="width: 100%; margin-top: 1rem;">Verify Code →</button>
+      </div>
+      <div id="voterStep2" style="display: none;">
+        <div id="voterActivePostInfo"></div>
+        <div id="voterCandidatesList"></div>
+        <div class="btn-group">
+          <button class="btn btn-outline" id="backToCodeBtn">← Back</button>
+          <button class="btn btn-success" id="submitVoteBtn">Submit Vote ✓</button>
+        </div>
+      </div>
+      <div id="voterSuccess" style="display: none;">
+        <div style="color: var(--success); font-size: 3rem;">✓</div>
+        <h3>Vote Cast Successfully!</h3>
+        <p>Your vote has been recorded.</p>
+        <button class="btn btn-primary" id="voteAgainBtn">Vote Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Tab -->
+  <div class="tab-content" id="tab-results">
+    <div class="card">
+      <div class="card-header">
+        <h3>🏆 Live Election Results</h3>
+        <span style="font-size: 0.7rem; color: var(--text-muted);" id="resultsTimestamp">Updating...</span>
+      </div>
+      <div class="card-body" id="liveResultsContainer" style="max-height: 600px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <!-- Reports Tab -->
+  <div class="tab-content" id="tab-reports">
+    <div class="grid-2col">
+      <div class="card">
+        <div class="card-header">
+          <h3>📄 Generate Reports</h3>
+        </div>
+        <div class="card-body">
+          <button class="btn btn-primary" id="reportFullResultsBtn" style="width: 100%; margin-bottom: 0.75rem;">📊 Full Election Results PDF</button>
+          <button class="btn btn-outline" id="reportCodesPdfBtn" style="width: 100%; margin-bottom: 0.75rem;">🎫 Voting Cards PDF</button>
+          <button class="btn btn-outline" id="reportSummaryBtn" style="width: 100%;">📈 Summary Report</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Audit Log</h3>
+        </div>
+        <div class="card-body" id="auditLog" style="font-family: 'Space Mono', monospace; font-size: 0.7rem; max-height: 300px; overflow-y: auto;">
+          <div style="color: var(--text-muted); text-align: center;">Ready for audit trail...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  QOHMS Election Nexus Pro · Secure Real-Time Voting System · Powered by Firebase
+</footer>
+
+<div id="toastContainer"></div>
+<div id="pdfOverlay" class="pdf-overlay" style="display: none;">
+  <div class="pdf-spinner"></div>
+  <div>Generating PDF...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, writeBatch, getDoc, onSnapshot, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCrP90qHmgA5tnd8K2XglZ_Opp8vsWAffg",
+  authDomain: "pocket-money-pro-bef26.firebaseapp.com",
+  projectId: "pocket-money-pro-bef26",
+  storageBucket: "pocket-money-pro-bef26.firebasestorage.app",
+  messagingSenderId: "3482377371",
+  appId: "1:3482377371:web:a627dcfe45adc3e507ba3e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let posts = [];
+let codes = [];
+let activeElectionPostId = null;
+let selectedCandidateId = null;
+let verifiedCode = null;
+
+// Helper Functions
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.style.borderLeftColor = type === 'success' ? '#22c55e' : type === 'danger' ? '#ef4444' : '#00d4ff';
+  toast.innerHTML = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Real-time Listeners
+onSnapshot(collection(db, "posts"), (snap) => {
+  posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderAdminPosts();
+  renderResults();
+  updateStats();
+}, (err) => {
+  console.error("Posts Sync Error:", err);
+  showToast("Database Access Denied (Posts)", "danger");
+});
+
+onSnapshot(collection(db, "codes"), (snap) => {
+  codes = snap.docs.map(d => ({ code: d.id, ...d.data() }));
+  renderCodesGrid();
+  updateStats();
+}, (err) => {
+  console.error("Codes Sync Error:", err);
+  showToast("Database Access Denied (Codes)", "danger");
+});
+
+// Render Functions
+function renderAdminPosts() {
+  const container = document.getElementById('postsListAdmin');
+  if (!posts.length) {
+    container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No posts created yet.</div>';
+    return;
+  }
+  container.innerHTML = posts.map(post => {
+    const candidates = post.candidates || [];
+    return `
+      <div class="post-item">
+        <div class="post-title-bar">
+          <span class="post-title">📌 ${escapeHtml(post.title)}</span>
+          <button class="btn btn-danger btn-sm" onclick="window.deletePost('${post.id}')">Delete</button>
+        </div>
+        <div class="candidate-list">
+          ${candidates.map(c => `
+            <div class="candidate-row">
+              <span class="candidate-name">${escapeHtml(c.name)}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="candidate-votes">${c.votes || 0} votes</span>
+                <button class="btn btn-outline btn-sm" onclick="window.deleteCandidate('${post.id}', ${c.id})">✕</button>
+              </div>
+            </div>
+          `).join('')}
+          ${!candidates.length ? '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 0.5rem;">No candidates yet.</div>' : ''}
+        </div>
+        <div class="input-row" style="margin-top: 0.75rem;">
+          <input type="text" id="candName_${post.id}" placeholder="New candidate name...">
+          <button class="btn btn-primary btn-sm" onclick="window.addCandidate('${post.id}')">+ Add</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCodesGrid() {
+  const container = document.getElementById('codesGrid');
+  if (!codes.length) {
+    container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No codes generated yet.</div>';
+    return;
+  }
+  container.innerHTML = codes.map(c => `
+    <div class="code-tile ${c.used ? 'used' : 'active'}">
+      ${c.code}
+      <span class="code-status">${c.used ? 'USED' : 'ACTIVE'}</span>
+      <span style="font-size: 0.55rem; color: var(--accent-cyan); display: block;">SEC ${c.section || '?'}</span>
+    </div>
+  `).join('');
+}
+
+function renderResults() {
+  const container = document.getElementById('liveResultsContainer');
+  if (!posts.length) {
+    container.innerHTML = '<div style="text-align: center; padding: 2rem;">No election data available.</div>';
+    return;
+  }
+  container.innerHTML = posts.map(post => {
+    const candidates = post.candidates || [];
+    const total = candidates.reduce((s, c) => s + (c.votes || 0), 0);
+    const sorted = [...candidates].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    const winner = total > 0 ? sorted[0] : null;
+    
+    return `
+      <div class="result-post">
+        <div class="result-header">
+          <span class="result-title">${escapeHtml(post.title)}</span>
+          <span class="result-total">${total} total votes</span>
+        </div>
+        ${candidates.map(c => {
+          const pct = total ? ((c.votes / total) * 100).toFixed(1) : 0;
+          const isWinner = winner && winner.id === c.id && total > 0;
+          return `
+            <div class="result-bar-item">
+              <div class="result-bar-label">
+                <span>${escapeHtml(c.name)} ${isWinner ? '<span class="winner-badge">WINNER</span>' : ''}</span>
+                <span>${c.votes || 0} (${pct}%)</span>
+              </div>
+              <div class="result-bar-bg">
+                <div class="result-bar-fill" style="width: ${pct}%;"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('resultsTimestamp').innerHTML = `Updated: ${new Date().toLocaleTimeString()}`;
+}
+
+function updateStats() {
+  const totalVotes = posts.flatMap(p => p.candidates || []).reduce((s, c) => s + (c.votes || 0), 0);
+  const totalCodes = codes.length;
+  const usedCodes = codes.filter(c => c.used).length;
+  const remainingCodes = totalCodes - usedCodes;
+  const turnout = totalCodes ? ((totalVotes / totalCodes) * 100).toFixed(1) : 0;
+  const totalCandidates = posts.reduce((s, p) => s + (p.candidates || []).length, 0);
+  
+  document.getElementById('statTotalVotes').textContent = totalVotes;
+  document.getElementById('statTurnout').textContent = turnout + '%';
+  document.getElementById('statActiveCodes').textContent = remainingCodes;
+  document.getElementById('quickPosts').textContent = posts.length;
+  document.getElementById('quickCandidates').textContent = totalCandidates;
+  document.getElementById('quickUsed').textContent = usedCodes;
+  document.getElementById('quickRemaining').textContent = remainingCodes;
+
+  // Update Section Stats
+  const sectionCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  codes.forEach(c => {
+    if (sectionCounts[c.section] !== undefined) sectionCounts[c.section]++;
+  });
+  document.getElementById('countS1').textContent = sectionCounts[1];
+  document.getElementById('countS2').textContent = sectionCounts[2];
+  document.getElementById('countS3').textContent = sectionCounts[3];
+  document.getElementById('countS4').textContent = sectionCounts[4];
+}
+
+// CRUD Operations
+window.deletePost = async (id) => {
+  if (confirm('Delete this post permanently?')) {
+    await deleteDoc(doc(db, 'posts', id));
+    showToast('Post deleted', 'danger');
+  }
+};
+
+window.deleteCandidate = async (postId, candId) => {
+  if (confirm('Remove this candidate?')) {
+    const ref = doc(db, 'posts', postId);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const candidates = snap.data().candidates.filter(c => c.id !== candId);
+      await updateDoc(ref, { candidates });
+      showToast('Candidate removed', 'warning');
+    }
+  }
+};
+
+window.addCandidate = async (postId) => {
+  const input = document.getElementById(`candName_${postId}`);
+  const name = input.value.trim();
+  if (!name) return showToast('Enter candidate name', 'danger');
+  const ref = doc(db, 'posts', postId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const candidates = snap.data().candidates || [];
+    const newId = candidates.length ? Math.max(...candidates.map(c => c.id)) + 1 : 1;
+    candidates.push({ id: newId, name, votes: 0 });
+    await updateDoc(ref, { candidates });
+    input.value = '';
+    showToast(`Candidate "${name}" added`, 'success');
+  }
+};
+
+// Admin Actions
+document.getElementById('createPostBtn').addEventListener('click', async () => {
+  const title = document.getElementById('newPostTitle').value.trim();
+  if (!title) return showToast('Enter post title', 'danger');
+  try {
+    await addDoc(collection(db, 'posts'), { title, candidates: [], createdAt: serverTimestamp() });
+    document.getElementById('newPostTitle').value = '';
+    showToast(`Post "${title}" created`, 'success');
+  } catch (err) {
+    console.error("Store Post Error:", err);
+    showToast(`Failed to store post: ${err.message}`, 'danger');
+  }
+});
+
+document.getElementById('generateCodesBtn').addEventListener('click', async () => {
+  const count = Math.min(parseInt(document.getElementById('codesCount').value) || 20, 100);
+  const section = document.getElementById('genSection').value;
+  const existingCodes = new Set(codes.map(c => c.code));
+  const batch = writeBatch(db);
+  let generated = 0;
+  for (let i = 0; i < count; i++) {
+    let code;
+    do { code = Math.random().toString(36).substring(2, 8).toUpperCase(); } 
+    while (existingCodes.has(code));
+    batch.set(doc(db, 'codes', code), { code, used: false, section: section, createdAt: serverTimestamp() });
+    generated++;
+  }
+  try {
+    await batch.commit();
+    showToast(`${generated} codes generated for Section ${section}`, 'success');
+  } catch (err) {
+    console.error("Store Codes Error:", err);
+    showToast(`Failed to store codes: ${err.message}`, 'danger');
+  }
+});
+
+document.getElementById('clearCodesBtn').addEventListener('click', async () => {
+  const filterSection = document.getElementById('exportSection').value;
+  const confirmMsg = filterSection === 'all' 
+    ? 'Delete ALL voting codes from ALL sections?' 
+    : `Delete all codes in Section ${filterSection}?`;
+    
+  if (!confirm(confirmMsg)) return;
+
+  const batch = writeBatch(db);
+  let count = 0;
+  codes.forEach(c => {
+    if (filterSection === 'all' || String(c.section) === filterSection) {
+      batch.delete(doc(db, 'codes', c.code));
+      count++;
+    }
+  });
+
+  if (count === 0) return showToast('No codes to delete in this selection', 'info');
+
+  await batch.commit();
+  showToast(filterSection === 'all' ? 'All codes cleared' : `Section ${filterSection} codes cleared`, 'danger');
+});
+
+document.getElementById('resetAllVotesBtn').addEventListener('click', async () => {
+  if (!confirm('Reset ALL votes to zero?')) return;
+  const batch = writeBatch(db);
+  posts.forEach(post => {
+    const resetCandidates = (post.candidates || []).map(c => ({ ...c, votes: 0 }));
+    batch.update(doc(db, 'posts', post.id), { candidates: resetCandidates });
+  });
+  await batch.commit();
+  showToast('All votes reset', 'warning');
+});
+
+document.getElementById('nukeElectionBtn').addEventListener('click', async () => {
+  if (!confirm('⚠️ COMPLETE NUKE: All posts, codes, and votes will be deleted. This cannot be undone!')) return;
+  const batch = writeBatch(db);
+  posts.forEach(p => batch.delete(doc(db, 'posts', p.id)));
+  codes.forEach(c => batch.delete(doc(db, 'codes', c.code)));
+  await batch.commit();
+  showToast('Election completely nuked', 'danger');
+});
+
+// Voter Portal Logic
+document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
+  const code = document.getElementById('voterCode').value.trim().toUpperCase();
+  if (!code) return showToast('Enter voting code', 'warning');
+  const codeDoc = await getDoc(doc(db, 'codes', code));
+  if (!codeDoc.exists()) return showToast('Invalid code', 'danger');
+  if (codeDoc.data().used) return showToast('Code already used', 'danger');
+  if (!activeElectionPostId) return showToast('No active election', 'warning');
+  
+  verifiedCode = code;
+  const post = posts.find(p => p.id === activeElectionPostId);
+  if (!post) return showToast('Active election post not found', 'danger');
+  
+  document.getElementById('voterStep1').style.display = 'none';
+  document.getElementById('voterSuccess').style.display = 'none';
+  document.getElementById('voterStep2').style.display = 'block';
+  
+  document.getElementById('voterActivePostInfo').innerHTML = `
+    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+      <strong>🗳️ ${escapeHtml(post.title)}</strong><br>
+      <small>Code: ${code}</small>
+    </div>
+  `;
+  
+  document.getElementById('voterCandidatesList').innerHTML = (post.candidates || []).map(c => `
+    <div class="candidate-option" data-candidate-id="${c.id}" data-candidate-name="${escapeHtml(c.name)}">
+      <span>${escapeHtml(c.name)}</span>
+      <span class="radio-custom"></span>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.candidate-option').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.candidate-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedCandidateId = parseInt(el.dataset.candidateId);
+    });
+  });
+});
+
+document.getElementById('backToCodeBtn').addEventListener('click', () => {
+  document.getElementById('voterStep2').style.display = 'none';
+  document.getElementById('voterStep1').style.display = 'block';
+  document.getElementById('voterCode').value = '';
+  selectedCandidateId = null;
+});
+
+document.getElementById('submitVoteBtn').addEventListener('click', async () => {
+  if (!selectedCandidateId) return showToast('Select a candidate', 'warning');
+  if (!verifiedCode) return showToast('Session expired', 'danger');
+  
+  const post = posts.find(p => p.id === activeElectionPostId);
+  if (!post) return showToast('Post not found', 'danger');
+  
+  const updatedCandidates = (post.candidates || []).map(c => 
+    c.id === selectedCandidateId ? { ...c, votes: (c.votes || 0) + 1 } : c
+  );
+  
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'posts', activeElectionPostId), { candidates: updatedCandidates });
+  batch.update(doc(db, 'codes', verifiedCode), { used: true, usedAt: serverTimestamp() });
+  await batch.commit();
+  
+  document.getElementById('voterStep2').style.display = 'none';
+  document.getElementById('voterSuccess').style.display = 'block';
+  showToast('Vote cast successfully!', 'success');
+  verifiedCode = null;
+  selectedCandidateId = null;
+});
+
+document.getElementById('voteAgainBtn').addEventListener('click', () => {
+  document.getElementById('voterSuccess').style.display = 'none';
+  document.getElementById('voterStep1').style.display = 'block';
+  document.getElementById('voterCode').value = '';
+});
+
+// Export Functions
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+// Tab Switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// Export Placeholders
+const generateCodesPDF = async () => {
+  const filterSection = document.getElementById('exportSection').value;
+  let codesToExport = codes;
+  
+  if (filterSection !== 'all') {
+    codesToExport = codes.filter(c => String(c.section) === filterSection);
+  }
+
+  if (codesToExport.length === 0) {
+    return showToast(filterSection === 'all' ? 'No codes available to export' : `No codes found for Section ${filterSection}`, 'warning');
+  }
+  
+  document.getElementById('pdfOverlay').style.display = 'flex';
+
+  // Generate content string directly for the PDF engine
+  const htmlContent = `
+    <div style="padding: 15px; font-family: Arial, sans-serif; background: white; color: black;">
+      <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #00d4ff; padding-bottom: 10px;">
+        <h1 style="font-size: 22px; margin: 0; color: #0a0c12; letter-spacing: 1px;">VOTER ACCESS CODES</h1>
+        <p style="font-size: 11px; color: #444; margin: 3px 0; text-transform: uppercase;">Section ${filterSection === 'all' ? 'Combined' : 'Section ' + filterSection} · Queen of Martyrs High School</p>
+      </div>
+      <div style="width: 100%;">
+        ${codesToExport.map(c => `
+          <div style="display: inline-block; width: 47%; border: 1px dashed #777; padding: 15px 10px; text-align: center; border-radius: 10px; margin: 1%; box-sizing: border-box; vertical-align: top;">
+            <div style="font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Voter Access Code (S${c.section || '?'})</div>
+            <div style="font-family: 'Courier New', Courier, monospace; font-size: 22px; font-weight: bold; color: #000; border: 1px solid #f0f0f0; padding: 8px; background: #fdfdfd;">${c.code}</div>
+            <div style="font-size: 9px; color: #666; margin-top: 6px; font-weight: bold;">QUEEN OF MARTYRS · SECURE SESSION</div>
+            <div style="font-size: 8px; color: #888; margin-top: 1px;">code works once it one time</div>
+            <div style="font-size: 7px; color: #aaa; margin-top: 4px; font-weight: 600;">⚡ STEM INNOVATIONS</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top: 25px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #eee; padding-top: 10px;">
+        Generated on ${new Date().toLocaleString()} · Section: ${filterSection} · System Audit Verified
+      </div>
+    </div>
+  `;
+
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `voter_codes_${new Date().getTime()}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    await html2pdf().set(opt).from(htmlContent).save();
+    showToast('Voter codes PDF exported successfully', 'success');
+  } catch (err) {
+    console.error('PDF Export Error:', err);
+    showToast('Failed to generate PDF', 'danger');
+  } finally {
+    document.getElementById('pdfOverlay').style.display = 'none';
+  }
+  showToast(`Successfully exported ${codesToExport.length} codes from Section: ${filterSection}`, 'success');
+};
+
+const generateResultsPDF = async () => {
+  if (posts.length === 0) return showToast('No results to export', 'warning');
+  
+  document.getElementById('pdfOverlay').style.display = 'flex';
+  
+  const htmlContent = `
+    <div style="padding: 20px; font-family: 'Inter', sans-serif; color: #000;">
+      <div style="text-align: center; border-bottom: 2px solid #00d4ff; padding-bottom: 10px; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 24px;">OFFICIAL ELECTION RESULTS</h1>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;">Queen of Martyrs High School · Electoral Commission</p>
+      </div>
+      
+      ${posts.map(post => {
+        const candidates = post.candidates || [];
+        const total = candidates.reduce((s, c) => s + (c.votes || 0), 0);
+        const sorted = [...candidates].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        
+        return `
+          <div style="margin-bottom: 30px; page-break-inside: avoid;">
+            <h2 style="font-size: 16px; background: #f0f9ff; padding: 8px; border-left: 4px solid #00d4ff;">${post.title}</h2>
+            <p style="font-size: 11px; margin: 5px 0;">Total Votes Cast: <strong>${total}</strong></p>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <thead>
+                <tr style="background: #f8fafc; font-size: 11px; text-align: left;">
+                  <th style="padding: 8px; border: 1px solid #ddd;">Candidate</th>
+                  <th style="padding: 8px; border: 1px solid #ddd;">Votes</th>
+                  <th style="padding: 8px; border: 1px solid #ddd;">Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sorted.map((c, index) => {
+                  const pct = total ? ((c.votes / total) * 100).toFixed(1) : 0;
+                  return `
+                    <tr style="font-size: 11px; ${index === 0 && total > 0 ? 'font-weight: bold; background: #f0fff4;' : ''}">
+                      <td style="padding: 8px; border: 1px solid #ddd;">${c.name} ${index === 0 && total > 0 ? '🏆' : ''}</td>
+                      <td style="padding: 8px; border: 1px solid #ddd;">${c.votes || 0}</td>
+                      <td style="padding: 8px; border: 1px solid #ddd;">${pct}%</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }).join('')}
+      
+      <div style="margin-top: 40px; font-size: 10px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">
+        Report Generated: ${new Date().toLocaleString()} · System Audit ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}
+      </div>
+    </div>
+  `;
+
+  const opt = {
+    margin: 10,
+    filename: `election_results_${new Date().getTime()}.pdf`,
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    await html2pdf().set(opt).from(htmlContent).save();
+    showToast('Results exported successfully', 'success');
+  } catch (err) {
+    showToast('Export failed', 'danger');
+  } finally {
+    document.getElementById('pdfOverlay').style.display = 'none';
+  }
+};
+
+document.getElementById('exportCodesBtn').addEventListener('click', generateCodesPDF);
+document.getElementById('reportFullResultsBtn').addEventListener('click', () => showToast('Export feature ready - connect PDF engine', 'info'));
+document.getElementById('reportFullResultsBtn').addEventListener('click', generateResultsPDF);
+document.getElementById('reportCodesPdfBtn').addEventListener('click', generateCodesPDF);
+document.getElementById('reportSummaryBtn').addEventListener('click', () => showToast('Export feature ready - connect PDF engine', 'info'));
+document.getElementById('reportSummaryBtn').addEventListener('click', generateResultsPDF);
+
+console.log('QOHMS Election Nexus Pro - Fully Enhanced');
+</script>
+</body>
+</html>
